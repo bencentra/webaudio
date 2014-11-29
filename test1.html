@@ -15,19 +15,93 @@
       padding-top: 10px;
       padding-bottom: 10px;
     }
+
+    .container {
+      min-width: 768px;
+    }
+
+    .center {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <!-- Content -->
   <div class="container">
- 
+    <div class="row">
+      <div class="col-md-12">
+        <div class="center">
+          <h2>Web Audio Test #1</h2>
+        </div>
+        <br>
+        <div class="center">
+          <button id="playBtn" class="btn btn-default">Play</button>
+          <button id="pauseBtn" class="btn btn-default">Pause</button>
+        </div>
+        <br>
+        <div class="center">
+          <p>Click <strong>Play</strong> to hear a tone. Click <strong>Pause</strong> to stop it.</p>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- Scripts -->
   <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
   <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
   <!--<script src="//code.angularjs.org/snapshot/angular.min.js"></script>-->
   <script>
-    console.log("Hello, world!");
-  </script> 
+    
+    var ctx, attack, release, envelope, volume, type, osc, play, pause;
+    var playing = false;
+
+    document.addEventListener("DOMContentLoaded", init, true);
+
+    function init() {
+      // Feature detection for AudioContext
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (typeof window.AudioContext === "undefined" || !window.AudioContext) {
+        console.error("You should probably get a browser that supports HTML5 audio");
+        return;
+      }
+      // UI setup
+      playBtn = document.getElementById("playBtn");
+      playBtn.addEventListener("click", play, true);
+      pauseBtn = document.getElementById("pauseBtn");
+      pauseBtn.addEventListener("click", pause, true);
+      // Instantiate vars
+      ctx = new AudioContext();
+      attack = 1;
+      release = 0;
+      volume = 1;
+      type = "triangle"; // "sine", "square", "sawtooth", "triangle"
+      envelope = ctx.createGain();
+      envelope.gain.setValueAtTime(volume, ctx.currentTime);
+      envelope.connect(ctx.destination);
+      osc = ctx.createOscillator(); 
+      osc.type = type;
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.connect(envelope);
+    }
+
+    function play() {
+      if (playing) return;
+      envelope.gain.setValueAtTime(0, ctx.currentTime);
+      envelope.gain.setTargetAtTime(volume, ctx.currentTime, attack / 1000);
+      osc = ctx.createOscillator(); 
+      osc.type = type;
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.connect(envelope);
+      osc.start();
+      playing = true;
+    }
+
+    function pause() {
+      if (!playing) return;
+      osc.stop();
+      osc.disconnect(envelope);
+      playing = false;
+    }
+
+  </script>
 </body>
 </html>

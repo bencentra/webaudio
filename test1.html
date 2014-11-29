@@ -23,25 +23,37 @@
     .center {
       text-align: center;
     }
+
+    .wave-selected {
+      background-color: #ddd;
+    }
   </style>
 </head>
 <body>
   <!-- Content -->
   <div class="container">
     <div class="row">
-      <div class="col-md-12">
-        <div class="center">
-          <h2>Web Audio Test #1</h2>
+      <div class="col-md-4 col-md-offset-4 center">
+        <h2>Web Audio Test #1</h2>
+        <br>
+        <div class="well">
+          <button id="playBtn" class="btn btn-lg btn-success" type="button">Start</button>
+          <button id="pauseBtn" class="btn btn-lg btn-danger" type="button">Stop</button>
+          <br><br>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default wave wave-selected" data-wave="sine">Sine</button>
+            <button type="button" class="btn btn-default wave" data-wave="sawtooth">Sawtooth</button>
+            <button type="button" class="btn btn-default wave" data-wave="square">Square</button>
+            <button type="button" class="btn btn-default wave" data-wave="triangle">Triangle</button>
+          </div>
         </div>
         <br>
-        <div class="center">
-          <button id="playBtn" class="btn btn-default">Play</button>
-          <button id="pauseBtn" class="btn btn-default">Pause</button>
-        </div>
-        <br>
-        <div class="center">
-          <p>Click <strong>Play</strong> to hear a tone. Click <strong>Pause</strong> to stop it.</p>
-        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 center">
+        <p>Click <strong>Start</strong> to play a tone. Click <strong>Stop</strong> to stop it.</p>
+        <p>Select the <strong>Wave Type</strong>: Sine, Sawtooth, Square, or Triangle.</p>
       </div>
     </div>
   </div>
@@ -51,29 +63,28 @@
   <!--<script src="//code.angularjs.org/snapshot/angular.min.js"></script>-->
   <script>
     
-    var ctx, attack, release, envelope, volume, type, osc, play, pause;
+    var ctx, attack, envelope, volume, type, osc, play, pause;
     var playing = false;
 
     document.addEventListener("DOMContentLoaded", init, true);
 
     function init() {
-      // Feature detection for AudioContext
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (typeof window.AudioContext === "undefined" || !window.AudioContext) {
-        console.error("You should probably get a browser that supports HTML5 audio");
-        return;
-      }
       // UI setup
-      playBtn = document.getElementById("playBtn");
+      playBtn = document.querySelector("#playBtn");
       playBtn.addEventListener("click", play, true);
-      pauseBtn = document.getElementById("pauseBtn");
+      pauseBtn = document.querySelector("#pauseBtn");
       pauseBtn.addEventListener("click", pause, true);
+      window.waveBtns = document.querySelectorAll(".wave");
+      for (var i = 0; i < waveBtns.length; i++) {
+        var waveBtn = waveBtns[i];
+        var newType = waveBtn.getAttribute("data-wave");
+        waveBtns[i].addEventListener("click", changeType(newType, waveBtn), true);
+      }
       // Instantiate vars
-      ctx = new AudioContext();
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
       attack = 1;
-      release = 0;
-      volume = 1;
-      type = "triangle"; // "sine", "square", "sawtooth", "triangle"
+      volume = .85;
+      type = "sine"; // "sine", "square", "sawtooth", "triangle"
       envelope = ctx.createGain();
       envelope.gain.setValueAtTime(volume, ctx.currentTime);
       envelope.connect(ctx.destination);
@@ -100,6 +111,26 @@
       osc.stop();
       osc.disconnect(envelope);
       playing = false;
+    }
+
+    function wave(t) {
+      type = t;
+      if (playing) {
+        pause();
+        play();
+      }
+    }
+
+    function changeType(t, b) {
+      return function() {
+        if (b) {
+          for (var i = 0; i < b.parentNode.children.length; i++) {
+            b.parentNode.children[i].classList.remove("wave-selected");
+          }
+          b.classList.add("wave-selected");
+        }
+        wave(t);
+      }
     }
 
   </script>

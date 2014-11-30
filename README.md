@@ -6,7 +6,7 @@ Playing around with HTML5 web audio API. View live demos at [http://bencentra.co
 Files
 -----
 
-* [test1.html](http://localhost:8888/webaudio/test1.html) - Simple Tone Generator, based on [tones.js](https://github.com/bit101/tones)
+* [test1.html](http://bencentra.com/webaudio/test1.html) - Simple Tone Generator, based on [tones.js](https://github.com/bit101/tones)
 
 Resources
 ---------

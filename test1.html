@@ -31,6 +31,10 @@
     #volume {
       width: 67px;
     }
+
+    #frequency {
+      width: 100px;
+    }
   </style>
 </head>
 <body>
@@ -38,33 +42,37 @@
   <div class="container">
     <div class="row">
       <div class="col-md-4 col-md-offset-4 center">
-        <h2>Web Audio Test #1</h2>
+        <h2>Web Audio Test #1<br><small>Simple Tone Generator</small></h2>
         <br>
         <div class="well">
-          <button id="playBtn" class="btn btn-lg btn-success" type="button">Start</button>
-          <button id="pauseBtn" class="btn btn-lg btn-danger" type="button">Stop</button>
-          <br><br>
+          <label>Frequency (Hz)</label><br>
+          <form class="form-inline">
+            <button id="lowBtn" class="btn btn-default" type="button">&nbsp;-&nbsp;</button>
+            <input type="number" id="frequency" class="form-control" value="450" min="50" max="10000"/>
+            <button id="highBtn" class="btn btn-default" type="button">&nbsp;+&nbsp;</button>
+          </form>
+          <small class="help-block">The frequency determines the pitch of the generated tone.</small>
+          <br>
+          <label>Waveform</label><br>
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-default wave wave-selected" data-wave="sine">Sine</button>
             <button type="button" class="btn btn-default wave" data-wave="sawtooth">Sawtooth</button>
             <button type="button" class="btn btn-default wave" data-wave="square">Square</button>
             <button type="button" class="btn btn-default wave" data-wave="triangle">Triangle</button>
           </div>
-          <br><br>
+          <small class="help-block">The waveform determines the timbre (quality) of the tone.</small>
+          <br>
+          <label>Volume (%)</label><br>
           <form class="form-inline">
             <button id="quietBtn" class="btn btn-default" type="button">&nbsp;-&nbsp;</button>
             <input type="number" id="volume" class="form-control" value="75" max="100" min="0"/>
             <button id="loudBtn" class="btn btn-default" type="button">&nbsp;+&nbsp;</button>
           </form>
+          <hr>
+          <button id="playBtn" class="btn btn-lg btn-success" type="button">Start</button>
+          <button id="pauseBtn" class="btn btn-lg btn-danger" type="button">Stop</button>
         </div>
         <br>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12 center">
-        <p>Click <strong>Start</strong> to play a tone. Click <strong>Stop</strong> to stop it.</p>
-        <p>Select the <strong>Wave Type</strong>: Sine, Sawtooth, Square, or Triangle.</p>
-        <p>Change the gain (volume) with the <strong>+</strong> and <strong>-</strong> buttons.</p>
       </div>
     </div>
   </div>
@@ -74,8 +82,8 @@
   <!--<script src="//code.angularjs.org/snapshot/angular.min.js"></script>-->
   <script>
     
-    var ctx, attack, envelope, volume, type, osc, play, pause;
-    var playBtn, pauseBtn, waveBtns, quietBtn, loudBtn, vol;
+    var ctx, attack, envelope, volume, frequency, type, osc, play, pause;
+    var playBtn, pauseBtn, waveBtns, quietBtn, loudBtn, vol, lowBtn, highBtn, freq;
     var playing = false;
 
     document.addEventListener("DOMContentLoaded", init, true);
@@ -97,18 +105,25 @@
       loudBtn = document.querySelector("#loudBtn");
       loudBtn.addEventListener("click", loud, true);
       vol = document.querySelector("#volume");
-      vol.addEventListener("change", volume(vol.value), true);
+      // vol.addEventListener("change", volume(vol.value), true);
+      lowBtn = document.querySelector("#lowBtn");
+      lowBtn.addEventListener("click", low, true);
+      highBtn = document.querySelector("#highBtn");
+      highBtn.addEventListener("click", high, true);
+      freq = document.querySelector("#frequency");
+      // freq.addEventListener("change", frequency(freq.value), true);
       // Instantiate vars
       ctx = new (window.AudioContext || window.webkitAudioContext)();
       attack = 1;
       volume = .75;
+      frequency = 450;
       type = "sine"; // "sine", "square", "sawtooth", "triangle"
       envelope = ctx.createGain();
       envelope.gain.setValueAtTime(volume, ctx.currentTime);
       envelope.connect(ctx.destination);
       osc = ctx.createOscillator(); 
       osc.type = type;
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
       osc.connect(envelope);
     }
 
@@ -118,7 +133,7 @@
       envelope.gain.setTargetAtTime(volume, ctx.currentTime, attack / 1000);
       osc = ctx.createOscillator(); 
       osc.type = type;
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
       osc.connect(envelope);
       osc.start();
       playing = true;
@@ -153,6 +168,20 @@
       }
     }
 
+    function low() {
+      changeFrequency("down", 50);
+    }
+
+    function high() {
+      changeFrequency("up", 50);
+    }
+
+    function frequency(freq) {
+      return function() {
+        changeFrequency("", freq);
+      }
+    }
+
     function changeType(type, btn) {
       return function() {
         if (btn) {
@@ -174,6 +203,18 @@
       vol.value = Math.round(volume * 100);
       if (playing) {
         envelope.gain.setTargetAtTime(volume, ctx.currentTime, attack / 1000);
+      }
+    }
+
+    function changeFrequency(type, amount) {
+      if (type === "up") frequency += amount;
+      else if (type === "down") frequency -= amount;
+      else frequency = amount;
+      if (frequency > 10000) frequency = 10000;
+      if (frequency < 50) frequency = 50;
+      freq.value = Math.round(frequency);
+      if (playing) {
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
       }
     }
 

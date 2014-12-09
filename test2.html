@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="author" content="">
+  <title>Web Audio Test #2</title>
+  <!-- Styles -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <style>
+    body {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .container {
+      min-width: 768px;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    #canvas {
+      display: block;
+      width: 768px;
+      height: 576px;
+      margin: auto;
+      border: 1px solid gray;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 center">
+        <h2>Web Audio Test #2<br><small>Mouse "Theremin"</small></h2>
+        <br>
+        <div class="well">
+          <div id="canvas" width="768" height="576"></div>
+        <br>
+      </div>
+    </div>
+  </div>
+  <!-- Scripts -->
+  <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <!--<script src="//code.angularjs.org/snapshot/angular.min.js"></script>-->
+  <script>
+    
+    (function(window, $) {
+      "use strict";
+
+      window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+
+      var ctx, attack, env, vol, freq, type, osc, canvas, mX, mY;
+      var playing = false;
+
+      document.addEventListener("DOMContentLoaded", init, true);
+      canvas = document.querySelector("#canvas");
+      canvas.addEventListener("mousemove", theremin, true);
+
+      function init(e) {
+        // Initialize audio vars
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        attack = 1;
+        vol = .75;
+        freq = 440;
+        type = "square";
+        env = ctx.createGain();
+        env.connect(ctx.destination);
+        osc = ctx.createOscillator();
+        osc.type = type;
+        osc.connect(env);
+      }
+
+      function theremin(e) {
+        var rect = canvas.getBoundingClientRect();
+        mX = e.clientX - rect.left;
+        my = e.clientY - rect.top;
+        
+      }
+
+    })(window, jQuery);
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="author" content="">
+  <title>Web Audio Test #1</title>
+  <!-- Styles -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <style>
+    body {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .container {
+      min-width: 768px;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .wave-selected {
+      background-color: #ddd;
+    }
+
+    #volume {
+      width: 67px;
+    }
+
+    #frequency {
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 col-md-offset-4 center">
+        <h2>Web Audio Test #1<br><small>Simple Tone Generator</small></h2>
+        <br>
+        <div class="well">
+          <button id="playBtn" class="btn btn-lg btn-success" type="button">Start</button>
+          <button id="pauseBtn" class="btn btn-lg btn-danger" type="button">Stop</button>
+        </div>
+        <br>
+      </div>
+    </div>
+  </div>
+  <!-- Scripts -->
+  <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <!--<script src="//code.angularjs.org/snapshot/angular.min.js"></script>-->
+  <script>
+    
+    //var ctx, attack, envelope, volume, frequency, type, osc, play, pause;
+    var tone, interval, playBtn, pauseBtn, playing = false;
+
+    document.addEventListener("DOMContentLoaded", init, true);
+
+    function init() {
+      tone = new ToneGenerator();
+      playBtn = document.getElementById("playBtn");
+      playBtn.onclick = play;
+      pauseBtn = document.getElementById("pauseBtn");
+      pauseBtn.onclick = pause;
+    }
+
+    function play() {
+      tone.play();
+      interval = setInterval(function() {
+        if (tone.playing) 
+          tone.pause();
+        else 
+          tone.play();
+      }, 1000);
+    }
+
+    function pause() {
+      tone.pause();
+      clearInterval(interval);
+    }
+
+    function ToneGenerator() {
+      var self = this;
+      self.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      self.playing = false;
+      self.attack = 1;
+      self.volume = .75;
+      self.frequency = 440;
+      self.envelope = self.ctx.createGain();
+      self.envelope.connect(self.ctx.destination);
+      self.osc = self.ctx.createOscillator();
+      self.osc.type = "sine";
+      self.osc.connect(self.envelope);
+    }
+
+    ToneGenerator.prototype.play = function() {
+      var self = this;
+      if (self.playing) return;
+      self._reset();
+      self.envelope.gain.setValueAtTime(0, self.ctx.currentTime);
+      self.envelope.gain.setTargetAtTime(self.volume, self.ctx.currentTime, self.attack / 1000);
+      self.osc.frequency.setValueAtTime(self.frequency, self.ctx.currentTime);
+      self.osc.start();
+      self.playing = true;
+    };
+
+    ToneGenerator.prototype.pause = function() {
+      var self = this;
+      if (!self.playing) return;
+      self.osc.stop();
+      self.osc.disconnect(self.envelope);
+      self.playing = false;
+    };
+
+    ToneGenerator.prototype.setVolume = function(vol) {
+      var self = this;
+      self.volume = vol;
+    };
+
+    ToneGenerator.prototype.setFrequency = function(freq) {
+      var self = this;
+      self.frequency = freq;
+    };
+
+    ToneGenerator.prototype._reset = function() {
+      var self = this;
+      self.osc.disconnect();
+      self.osc = self.ctx.createOscillator();
+      self.osc.frequency.setValueAtTime(self.frequency, self.ctx.currentTime);
+      self.osc.connect(self.envelope);
+    };
+
+  </script>
+</body>
+</html>
